@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // CareProof Phase 1: Default-deny catch-all rule
+    // Production Security Boundary: All unauthenticated and unvalidated access is rejected.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Infrastructure health checkpoint (read-only for authenticated users during diagnostic probes)
+    match /system/health {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "CareProof Audit Console",
+  "description": "Deterministic clinical care audit ledger, evidence scoring engine, and safety gate verification system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

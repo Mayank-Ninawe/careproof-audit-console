@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "systemHealth": {
+      "title": "SystemHealth",
+      "description": "Minimal infrastructure connectivity check entity for CareProof Audit Console",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Connectivity status string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of connectivity probe"
+        }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "/system/health": {
+      "schema": "systemHealth",
+      "description": "System infrastructure connectivity checkpoint"
+    }
+  }
+}
