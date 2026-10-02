@@ -420,3 +420,5 @@ export function generateSimulation(seed: number, config?: SimulationConfig): Sim
     simulatedAuditAssessments,
   };
 }
+
+export const generateSimulatedDataset = generateSimulation;

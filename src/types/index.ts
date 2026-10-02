@@ -9,3 +9,4 @@ export * from './scoring';
 export * from './simulation';
 export * from './auth';
 export * from './userProfile';
+export * from './dashboard';
