@@ -3,4 +3,4 @@
  * Phase 1: Directory established for application state stores.
  */
 
-export {};
+export * from './authStore';

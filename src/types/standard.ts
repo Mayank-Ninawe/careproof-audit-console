@@ -1,17 +1,45 @@
 /**
- * CareProof Audit Console - Canonical Domain & Standard Types
- * Source of Truth: standard.json
+ * CareProof Audit Console - Canonical Standard Domain Types
+ * Single source of truth: src/data/standard.json
+ * 
+ * Strict, extensible domain types representing the CareProof standard:
+ * Standard, Pillar, Indicator, ThresholdBand, EvidenceType, Reference
  */
 
-export type EvidenceClassification = 'E' | 'I' | 'P';
+// Roadmap Evidence Classification: E = Established, I = Interpretation, P = Proposed
+export type EvidenceType = 'E' | 'I' | 'P';
+export type EvidenceClassification = EvidenceType;
 
-export type MetricType = 'percentage' | 'rate' | 'scale' | 'boolean';
+// Roadmap Threshold Band Levels: Meets, Partial, Fails
+export type BandLevel = 'Meets' | 'Partial' | 'Fails';
 
-export type AuditTierId = 'Tier 1' | 'Tier 2' | 'Tier 3' | 'Tier 4';
+export interface ThresholdBand {
+  level: BandLevel;
+  threshold?: number;
+  label?: string;
+  description?: string;
+  lowerBound?: number | null;
+  upperBound?: number | null;
+}
 
-export type PerformanceBand = 'pass' | 'warning' | 'fail' | 'not_assessed';
+export interface Reference {
+  id: string;
+  title: string;
+  citation?: string;
+  sourceUrl?: string;
+  publicationYear?: number;
+}
 
-export type AssessmentStatus = 'assessed' | 'not_assessed' | 'exempt';
+export interface Pillar {
+  id: string;
+  name: string;
+  description: string;
+  ordering: number;
+  weight: number;
+  leadAuditorRole?: string;
+}
+
+export type PillarDefinition = Pillar;
 
 export interface ThresholdConfig {
   pass: number;
@@ -19,31 +47,51 @@ export interface ThresholdConfig {
   fail: number;
 }
 
-export interface IndicatorDefinition {
+export type MetricType = 'percentage' | 'rate' | 'scale' | 'boolean';
+
+export interface Indicator {
   id: string;
   pillarId: string;
-  code: string;
   name: string;
-  evidenceClassification: EvidenceClassification;
-  isCritical: boolean;
-  weight: number;
-  metricType: MetricType;
-  unit: string;
-  thresholds: ThresholdConfig;
-  isLowerBetter?: boolean;
-  safetyGateCap: string | null;
+  definition: string;
   dataSource: string;
+  bands: ThresholdBand[];
+  weight: number;
+  critical: boolean;
+  evidence: EvidenceType;
+  refs: Reference[];
+
+  // Compatibility fields for existing application code and tests
+  code: string;
+  isCritical: boolean;
+  evidenceClassification: EvidenceClassification;
   description: string;
   guidance: string;
+  thresholds: ThresholdConfig;
+  unit: string;
+  metricType: MetricType;
+  safetyGateCap: string | null;
+  isLowerBetter?: boolean;
 }
 
-export interface PillarDefinition {
-  id: string;
-  name: string;
-  weight: number;
-  description: string;
-  leadAuditorRole: string;
+export type IndicatorDefinition = Indicator;
+
+export interface StandardMetadata {
+  description?: string;
+  effectiveDate?: string;
+  frameworkStatus?: string;
+  clinicalScope?: string;
+  evidencePolicy?: string;
+  references?: Reference[];
 }
+
+export interface StandardDisclaimer {
+  frameworkStatus: string;
+  clinicalScope: string;
+  evidencePolicy: string;
+}
+
+export type AuditTierId = 'Tier 1' | 'Tier 2' | 'Tier 3' | 'Tier 4';
 
 export interface TierDefinition {
   tier: AuditTierId;
@@ -55,13 +103,14 @@ export interface TierDefinition {
   description: string;
 }
 
-export interface StandardDisclaimer {
-  frameworkStatus: string;
-  clinicalScope: string;
-  evidencePolicy: string;
-}
+export interface Standard {
+  version: string;
+  name: string;
+  pillars: Pillar[];
+  indicators: Indicator[];
+  metadata?: StandardMetadata;
 
-export interface CareProofStandard {
+  // Compatibility fields for existing scoring engine
   standardVersion: string;
   standardName: string;
   effectiveDate: string;
@@ -72,9 +121,14 @@ export interface CareProofStandard {
     medium: { minCoverage: number; minEstablishedWeightRatio: number };
     low: { minCoverage: number; minEstablishedWeightRatio: number };
   };
-  pillars: PillarDefinition[];
-  indicators: IndicatorDefinition[];
 }
+
+export type CareProofStandard = Standard;
+
+// --- Supporting Scoring Engine Types (Preserved for compatibility) ---
+
+export type PerformanceBand = 'pass' | 'warning' | 'fail' | 'not_assessed';
+export type AssessmentStatus = 'assessed' | 'not_assessed' | 'exempt';
 
 export interface IndicatorAssessment {
   indicatorId: string;
@@ -94,7 +148,7 @@ export interface EvaluatedIndicatorScore {
   weight: number;
   measuredValue: number | null;
   unit: string;
-  evaluatedScore: number; // 0 - 100
+  evaluatedScore: number;
   band: PerformanceBand;
   status: AssessmentStatus;
   dataSource: string;
@@ -113,7 +167,7 @@ export interface PillarScoreResult {
   assessedWeight: number;
   totalWeight: number;
   coveragePercent: number;
-  rawPillarScore: number; // 0 - 100
+  rawPillarScore: number;
   weightedContribution: number;
   indicatorScores: EvaluatedIndicatorScore[];
 }

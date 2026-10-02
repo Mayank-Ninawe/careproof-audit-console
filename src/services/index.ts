@@ -4,3 +4,4 @@
 
 export * from './firebase';
 export * from './firestoreError';
+export * from './auth';

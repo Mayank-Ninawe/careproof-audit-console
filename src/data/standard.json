@@ -1,7 +1,14 @@
 {
+  "version": "1.4.0",
+  "name": "CareProof Clinical Quality & Safety Audit Standard",
   "standardVersion": "1.4.0",
   "standardName": "CareProof Clinical Quality & Safety Audit Standard",
   "effectiveDate": "2026-01-15",
+  "metadata": {
+    "frameworkStatus": "Proposed framework, not clinically validated.",
+    "clinicalScope": "Decision support, not diagnosis.",
+    "evidencePolicy": "Evidence classification tags: [E] Established, [I] Interpretation, [P] Proposed."
+  },
   "disclaimer": {
     "frameworkStatus": "Proposed framework, not clinically validated.",
     "clinicalScope": "Decision support, not diagnosis.",
@@ -53,37 +60,42 @@
   "pillars": [
     {
       "id": "CSP",
-      "name": "Clinical Safety & Protocol Adherence",
+      "name": "Clinical Safety Protocols",
+      "description": "Verification of core clinical safety, medication administration, infection prevention, and checklist procedures.",
+      "ordering": 1,
       "weight": 0.25,
-      "description": "Verification of core life-safety, medication management, infection control, and sterile protocol compliance.",
       "leadAuditorRole": "Clinical Quality Director"
     },
     {
       "id": "CSW",
-      "name": "Caregiver Staffing & Workload Verification",
+      "name": "Caregiver Staffing & Workload",
+      "description": "Assessment of caregiver competency levels, workload distribution, and staffing verification.",
+      "ordering": 2,
       "weight": 0.20,
-      "description": "Audit of real-time staff-to-resident ratios, shift continuity, fatigue index, and credential currency.",
       "leadAuditorRole": "Director of Nursing & Operations"
     },
     {
       "id": "EEH",
-      "name": "Equipment, Environment & Hygiene Readiness",
+      "name": "Equipment, Environment & Hygiene",
+      "description": "Validation of device registers, calibration, uptime, maintenance schedules, and hygiene status.",
+      "ordering": 3,
       "weight": 0.20,
-      "description": "Validation of biomedical equipment maintenance, sensor calibration, environmental sanitization, and safety hazard monitoring.",
       "leadAuditorRole": "Biomedical & Facilities Inspector"
     },
     {
       "id": "PMI",
-      "name": "Patient Monitoring & Incident Response",
+      "name": "Patient Monitoring & Incident",
+      "description": "Monitoring of observation data gaps, alert response latency, incident analysis, and corrective actions.",
+      "ordering": 4,
       "weight": 0.20,
-      "description": "Audit of biometric telemetry integrity, acute alert response latency, fall prevention protocol adherence, and incident escalation.",
       "leadAuditorRole": "Patient Safety Officer"
     },
     {
-      "id": "DCR",
-      "name": "Documentation, Consent & Record Integrity",
+      "id": "CGE",
+      "name": "Clinical Governance & Evidence",
+      "description": "Audit trail integrity, clinical protocol alignment, evidence classification, and documentation signoff.",
+      "ordering": 5,
       "weight": 0.15,
-      "description": "Verification of audit trail completeness, timely nursing note signoff, informed consent verifications, and record provenance.",
       "leadAuditorRole": "Health Informatics Auditor"
     }
   ],
@@ -93,9 +105,20 @@
       "pillarId": "CSP",
       "code": "CSP-01",
       "name": "Medication Dual-Verification Signoff Rate",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Percentage of high-alert medications administered with documented two-clinician independent verification before dispensing.",
+      "description": "Percentage of high-alert medications administered with documented two-clinician independent verification before dispensing.",
+      "dataSource": "eMAR Electronic Medication Administration Record audit logs",
+      "bands": [
+        { "level": "Meets", "threshold": 95, "description": "High compliance (>= 95%)" },
+        { "level": "Partial", "threshold": 88, "description": "Partial compliance (80% - 94%)" },
+        { "level": "Fails", "threshold": 80, "description": "Below safety threshold (< 80%)" }
+      ],
       "weight": 2.0,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -104,8 +127,6 @@
         "fail": 80
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "eMAR Electronic Medication Administration Record audit logs",
-      "description": "Percentage of high-alert medications administered with documented two-clinician independent verification before dispensing.",
       "guidance": "Established clinical safety protocol [E]. Failure below 80% triggers an immediate safety gate freeze capping facility tier at Tier 3."
     },
     {
@@ -113,9 +134,20 @@
       "pillarId": "CSP",
       "code": "CSP-02",
       "name": "Infection Control & Hand Hygiene Adherence",
-      "evidenceClassification": "E",
-      "isCritical": false,
+      "definition": "Compliance rate with standard hand hygiene procedures across resident care encounters.",
+      "description": "Compliance rate with standard hand hygiene procedures across resident care encounters.",
+      "dataSource": "Dispenser sensor logs & direct audit observation sampling",
+      "bands": [
+        { "level": "Meets", "threshold": 90, "description": "Meets hygiene target (>= 90%)" },
+        { "level": "Partial", "threshold": 80, "description": "Partial compliance (70% - 89%)" },
+        { "level": "Fails", "threshold": 70, "description": "Unacceptable hygiene adherence (< 70%)" }
+      ],
       "weight": 1.5,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -124,18 +156,27 @@
         "fail": 70
       },
       "safetyGateCap": null,
-      "dataSource": "Dispenser sensor logs & direct audit observation sampling",
-      "description": "Compliance rate with World Health Organization five moments of hand hygiene across resident room entries/exits.",
-      "guidance": "Established standard [E]. Measured via automated dispenser telemetry cross-referenced with nurse badge presence sensors."
+      "guidance": "Established standard [E]. Measured via dispenser telemetry cross-referenced with staff observation sampling."
     },
     {
       "id": "CSP-03",
       "pillarId": "CSP",
       "code": "CSP-03",
       "name": "Emergency Resuscitation Equipment Check Adherence",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Audit of daily verification of emergency resuscitation equipment readiness, charge, and intact seal status.",
+      "description": "Audit of daily verification of emergency resuscitation equipment readiness, charge, and intact seal status.",
+      "dataSource": "Daily digital equipment inspection verification logs",
+      "bands": [
+        { "level": "Meets", "threshold": 98, "description": "Meets daily readiness requirement (>= 98%)" },
+        { "level": "Partial", "threshold": 92, "description": "Minor inspection delays (85% - 97%)" },
+        { "level": "Fails", "threshold": 85, "description": "Unacceptable check adherence (< 85%)" }
+      ],
       "weight": 2.0,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -144,8 +185,6 @@
         "fail": 85
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "Daily digital crash cart inspection NFC verification logs",
-      "description": "Audit of daily verification of emergency crash cart defibrillator charge, suction canister integrity, and expired drug seals.",
       "guidance": "Established requirement [E]. Critical safety gate indicator. Missing daily checks directly breaches facility life-safety requirements."
     },
     {
@@ -153,9 +192,20 @@
       "pillarId": "CSP",
       "code": "CSP-04",
       "name": "Clinical Pathway Deviation Rationalization",
-      "evidenceClassification": "I",
-      "isCritical": false,
+      "definition": "Percentage of clinical care plan deviations accompanied by documented clinical justification.",
+      "description": "Percentage of clinical care plan deviations accompanied by documented clinical justification.",
+      "dataSource": "Clinical Decision Support system exception and note rationale logs",
+      "bands": [
+        { "level": "Meets", "threshold": 88, "description": "High justification rate (>= 88%)" },
+        { "level": "Partial", "threshold": 75, "description": "Partial rationalization (60% - 87%)" },
+        { "level": "Fails", "threshold": 60, "description": "Unexplained deviation (< 60%)" }
+      ],
       "weight": 1.0,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "I",
+      "evidenceClassification": "I",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -164,8 +214,6 @@
         "fail": 60
       },
       "safetyGateCap": null,
-      "dataSource": "Clinical Decision Support system exception and note rationale logs",
-      "description": "Percentage of clinical care plan deviations accompanied by documented physician or charge nurse clinical justification.",
       "guidance": "Interpretation standard [I]. Evaluates whether deviations from care pathways contain clinically reasoned justifications."
     },
 
@@ -174,9 +222,20 @@
       "pillarId": "CSW",
       "code": "CSW-01",
       "name": "Direct Care Hours Per Resident Day (HPRD)",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Audited actual direct care hours delivered by nursing and certified staff per resident day.",
+      "description": "Audited actual direct care hours delivered by nursing and certified staff per resident day.",
+      "dataSource": "Timeclock verified shift roster records",
+      "bands": [
+        { "level": "Meets", "threshold": 3.8, "description": "Standard coverage (>= 3.8 hrs/day)" },
+        { "level": "Partial", "threshold": 3.2, "description": "Moderate coverage (2.8 - 3.7 hrs/day)" },
+        { "level": "Fails", "threshold": 2.8, "description": "Insufficient coverage (< 2.8 hrs/day)" }
+      ],
       "weight": 2.0,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "rate",
       "unit": "hrs/day",
       "thresholds": {
@@ -185,18 +244,27 @@
         "fail": 2.8
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "Payroll-based biometric timeclock verified shift roster records",
-      "description": "Audited actual direct care hours delivered by licensed RNs, LPNs, and certified aides per resident day.",
-      "guidance": "Established regulatory metric [E]. Critical safety gate indicator. Staffing levels below 2.8 HPRD compromise resident safety."
+      "guidance": "Established metric [E]. Critical safety gate indicator. Staffing levels below 2.8 HPRD compromise resident safety."
     },
     {
       "id": "CSW-02",
       "pillarId": "CSW",
       "code": "CSW-02",
-      "name": "Mandatory Rest Period & Shift Overlap Adherence",
-      "evidenceClassification": "I",
-      "isCritical": false,
+      "name": "Rest Period & Shift Overlap Adherence",
+      "definition": "Compliance with inter-shift rest requirements and structured handoff overlap.",
+      "description": "Compliance with inter-shift rest requirements and structured handoff overlap.",
+      "dataSource": "Electronic scheduling shift-delta records",
+      "bands": [
+        { "level": "Meets", "threshold": 92, "description": "Adequate rest compliance (>= 92%)" },
+        { "level": "Partial", "threshold": 82, "description": "Moderate rest compliance (70% - 91%)" },
+        { "level": "Fails", "threshold": 70, "description": "Poor rest compliance (< 70%)" }
+      ],
       "weight": 1.2,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "I",
+      "evidenceClassification": "I",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -205,18 +273,27 @@
         "fail": 70
       },
       "safetyGateCap": null,
-      "dataSource": "Electronic scheduling shift-delta records & badge clock events",
-      "description": "Compliance with minimum 10-hour inter-shift rest requirements and 20-minute structured clinical handoff overlap.",
-      "guidance": "Interpretation standard [I]. Prevents clinician cognitive fatigue and mitigates communication breakdown during shift changes."
+      "guidance": "Interpretation standard [I]. Prevents clinician fatigue and mitigates communication breakdown during shift changes."
     },
     {
       "id": "CSW-03",
       "pillarId": "CSW",
       "code": "CSW-03",
       "name": "Clinical Credential & Competency Verification Rate",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Proportion of active on-duty clinical personnel with verified licenses and current certifications.",
+      "description": "Proportion of active on-duty clinical personnel with verified licenses and current certifications.",
+      "dataSource": "Primary source license database & certification registry",
+      "bands": [
+        { "level": "Meets", "threshold": 100, "description": "Full verification (100%)" },
+        { "level": "Partial", "threshold": 96, "description": "Minor verification delay (90% - 99%)" },
+        { "level": "Fails", "threshold": 90, "description": "Unverified credentials (< 90%)" }
+      ],
       "weight": 1.8,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -225,8 +302,6 @@
         "fail": 90
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "Primary source license database & BLS/ACLS certification registry",
-      "description": "Proportion of active on-duty nursing and clinical personnel with verified, unencumbered state licenses and current life support certifications.",
       "guidance": "Established compliance standard [E]. Critical safety gate indicator. Working without verified credentials triggers a safety cap."
     },
     {
@@ -234,9 +309,20 @@
       "pillarId": "CSW",
       "code": "CSW-04",
       "name": "Staffing Workload Volatility Index",
-      "evidenceClassification": "P",
-      "isCritical": false,
+      "definition": "Computational index measuring intraday variance between acuity demand surges and staffing response.",
+      "description": "Computational index measuring intraday variance between acuity demand surges and staffing response.",
+      "dataSource": "Algorithmic workload index derived from acuity vs on-shift staffing",
+      "bands": [
+        { "level": "Meets", "threshold": 3.0, "description": "Stable staffing response (<= 3.0)" },
+        { "level": "Partial", "threshold": 5.5, "description": "Moderate volatility (3.1 - 7.9)" },
+        { "level": "Fails", "threshold": 8.0, "description": "Severe volatility (>= 8.0)" }
+      ],
       "weight": 1.0,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "P",
+      "evidenceClassification": "P",
+      "refs": [],
       "metricType": "scale",
       "unit": "index (0-10)",
       "thresholds": {
@@ -246,8 +332,6 @@
       },
       "isLowerBetter": true,
       "safetyGateCap": null,
-      "dataSource": "Algorithmic workload index derived from resident acuity vs on-shift FTEs",
-      "description": "Proposed computational index measuring intraday variance between resident acuity demand surges and staffing response.",
       "guidance": "Proposed framework metric [P]. Lower is better. Demonstrates operational resilience under variable resident acuity surges."
     },
 
@@ -256,9 +340,20 @@
       "pillarId": "EEH",
       "code": "EEH-01",
       "name": "Biomedical Device Preventative Maintenance Compliance",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Percentage of high-risk biomedical devices tested within scheduled inspection cycles.",
+      "description": "Percentage of high-risk biomedical devices tested within scheduled inspection cycles.",
+      "dataSource": "Maintenance management calibration logs",
+      "bands": [
+        { "level": "Meets", "threshold": 98, "description": "Compliant maintenance (>= 98%)" },
+        { "level": "Partial", "threshold": 90, "description": "Minor backlog (82% - 97%)" },
+        { "level": "Fails", "threshold": 82, "description": "Overdue maintenance (< 82%)" }
+      ],
       "weight": 2.0,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -267,18 +362,27 @@
         "fail": 82
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "Computerized Maintenance Management System (CMMS) calibration logs",
-      "description": "Percentage of high-risk biomedical devices (infusion pumps, ventilators, patient lifts) tested within scheduled inspection cycles.",
-      "guidance": "Established biomedical safety standard [E]. Critical safety gate indicator. Neglected biomedical maintenance presents immediate physical risk."
+      "guidance": "Established safety standard [E]. Critical safety gate indicator. Neglected biomedical maintenance presents immediate physical risk."
     },
     {
       "id": "EEH-02",
       "pillarId": "EEH",
       "code": "EEH-02",
       "name": "Continuous Environmental Air Quality & Pressure Gradient",
-      "evidenceClassification": "I",
-      "isCritical": false,
+      "definition": "Percentage of audited hours maintaining required air change rates and pressure differentials.",
+      "description": "Percentage of audited hours maintaining required air change rates and pressure differentials.",
+      "dataSource": "HVAC building management continuous telemetry",
+      "bands": [
+        { "level": "Meets", "threshold": 94, "description": "Target air quality maintained (>= 94%)" },
+        { "level": "Partial", "threshold": 85, "description": "Moderate fluctuations (75% - 93%)" },
+        { "level": "Fails", "threshold": 75, "description": "Contagion barrier compromise (< 75%)" }
+      ],
       "weight": 1.2,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "I",
+      "evidenceClassification": "I",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -287,18 +391,27 @@
         "fail": 75
       },
       "safetyGateCap": null,
-      "dataSource": "HVAC building management continuous telemetry (ACH, VOC, differential pressure)",
-      "description": "Percentage of audited hours maintaining required air change rates (ACH >= 6) and isolation room negative pressure differentials.",
       "guidance": "Interpretation standard [I]. Assesses indoor air quality and airborne contagion barrier integrity."
     },
     {
       "id": "EEH-03",
       "pillarId": "EEH",
       "code": "EEH-03",
-      "name": "Terminal Cleaning & Disinfection ATP Bioluminescence Audit",
-      "evidenceClassification": "E",
-      "isCritical": false,
+      "name": "Terminal Cleaning & Disinfection Bioluminescence Audit",
+      "definition": "Percentage of randomized high-touch surface samples meeting objective cleanliness thresholds post-discharge.",
+      "description": "Percentage of randomized high-touch surface samples meeting objective cleanliness thresholds post-discharge.",
+      "dataSource": "Randomized post-discharge swab readings",
+      "bands": [
+        { "level": "Meets", "threshold": 92, "description": "Disinfected surface compliance (>= 92%)" },
+        { "level": "Partial", "threshold": 82, "description": "Borderline sanitization (70% - 91%)" },
+        { "level": "Fails", "threshold": 70, "description": "Failed disinfection (< 70%)" }
+      ],
       "weight": 1.5,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -307,8 +420,6 @@
         "fail": 70
       },
       "safetyGateCap": null,
-      "dataSource": "Randomized post-discharge surface ATP swab meter readings (< 250 RLU)",
-      "description": "Percentage of randomized high-touch surface samples meeting objective biological cleanliness thresholds post-discharge.",
       "guidance": "Established environmental hygiene protocol [E]. Objective validation of physical surface decontamination."
     },
     {
@@ -316,9 +427,20 @@
       "pillarId": "EEH",
       "code": "EEH-04",
       "name": "Environmental Sensor Telemetry Reliability Score",
-      "evidenceClassification": "P",
-      "isCritical": false,
+      "definition": "Computational reliability score reflecting environmental sensor uptime and packet continuity across facility rooms.",
+      "description": "Computational reliability score reflecting environmental sensor uptime and packet continuity across facility rooms.",
+      "dataSource": "Sensor heartbeat uptime telemetry and packet loss stream",
+      "bands": [
+        { "level": "Meets", "threshold": 90, "description": "Reliable data stream (>= 90%)" },
+        { "level": "Partial", "threshold": 78, "description": "Intermittent telemetry (65% - 89%)" },
+        { "level": "Fails", "threshold": 65, "description": "Unreliable sensor telemetry (< 65%)" }
+      ],
       "weight": 1.0,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "P",
+      "evidenceClassification": "P",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -327,8 +449,6 @@
         "fail": 65
       },
       "safetyGateCap": null,
-      "dataSource": "Sensor heartbeat uptime telemetry and packet loss diagnostic stream",
-      "description": "Proposed computational reliability score reflecting environmental IoT sensor uptime and packet continuity across facility rooms.",
       "guidance": "Proposed framework metric [P]. Assesses real-time sensor infrastructure trust without inferring clinical condition directly."
     },
 
@@ -337,9 +457,20 @@
       "pillarId": "PMI",
       "code": "PMI-01",
       "name": "Critical Telemetry Alert Response Latency",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Median response time from automated telemetry alert to physical nurse bedside check.",
+      "description": "Median response time from automated telemetry alert to physical nurse bedside check.",
+      "dataSource": "Central telemetry monitoring system timestamp to nurse acknowledgment logs",
+      "bands": [
+        { "level": "Meets", "threshold": 60, "description": "Rapid bedside response (<= 60s)" },
+        { "level": "Partial", "threshold": 120, "description": "Moderate response latency (61s - 179s)" },
+        { "level": "Fails", "threshold": 180, "description": "Excessive response delay (>= 180s)" }
+      ],
       "weight": 2.0,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "rate",
       "unit": "seconds",
       "thresholds": {
@@ -349,8 +480,6 @@
       },
       "isLowerBetter": true,
       "safetyGateCap": "Tier 3",
-      "dataSource": "Central telemetry monitoring system timestamp to nurse acknowledgment logs",
-      "description": "Median response time from automated telemetry alert (asystole, SpO2 desaturation, severe tachycardia) to physical nurse bedside check.",
       "guidance": "Established clinical safety benchmark [E]. Critical safety gate indicator. Lower is better. Response delay exceeding 180 seconds triggers a safety gate breach."
     },
     {
@@ -358,9 +487,20 @@
       "pillarId": "PMI",
       "code": "PMI-02",
       "name": "Fall Risk Mitigation Protocol Compliance",
-      "evidenceClassification": "E",
-      "isCritical": false,
+      "definition": "Percentage of high-fall-risk residents with active, verified preventative interventions.",
+      "description": "Percentage of high-fall-risk residents with active, verified preventative interventions.",
+      "dataSource": "Bed exit sensor alarms, footwear verifications, and post-shift safety audits",
+      "bands": [
+        { "level": "Meets", "threshold": 92, "description": "High prevention adherence (>= 92%)" },
+        { "level": "Partial", "threshold": 84, "description": "Partial mitigation in place (72% - 91%)" },
+        { "level": "Fails", "threshold": 72, "description": "Deficient fall precautions (< 72%)" }
+      ],
       "weight": 1.5,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -369,8 +509,6 @@
         "fail": 72
       },
       "safetyGateCap": null,
-      "dataSource": "Bed exit sensor alarms, non-skid footwear verifications, and post-shift safety audits",
-      "description": "Percentage of high-fall-risk residents with active, verified preventative interventions (bed alarms armed, low-height beds, clear pathways).",
       "guidance": "Established clinical metric [E]. Verifies physical implementation of fall prevention care plans."
     },
     {
@@ -378,9 +516,20 @@
       "pillarId": "PMI",
       "code": "PMI-03",
       "name": "Adverse Incident Root Cause Escalation Rate",
-      "evidenceClassification": "I",
-      "isCritical": false,
+      "definition": "Percentage of recorded safety incidents with completed multidisciplinary root-cause reviews within 48 hours.",
+      "description": "Percentage of recorded safety incidents with completed multidisciplinary root-cause reviews within 48 hours.",
+      "dataSource": "Incident Management Incident Reporting System review logs",
+      "bands": [
+        { "level": "Meets", "threshold": 95, "description": "Thorough root cause reviews (>= 95%)" },
+        { "level": "Partial", "threshold": 85, "description": "Partial escalation (70% - 94%)" },
+        { "level": "Fails", "threshold": 70, "description": "Unescalated incident reviews (< 70%)" }
+      ],
       "weight": 1.3,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "I",
+      "evidenceClassification": "I",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -389,8 +538,6 @@
         "fail": 70
       },
       "safetyGateCap": null,
-      "dataSource": "Incident Management Incident Reporting System (IRS) review logs",
-      "description": "Percentage of recorded safety incidents (medication near-misses, skin tears, falls) with completed multidisciplinary root-cause reviews within 48 hours.",
       "guidance": "Interpretation standard [I]. Measures facility commitment to systematic continuous safety improvement."
     },
     {
@@ -398,9 +545,20 @@
       "pillarId": "PMI",
       "code": "PMI-04",
       "name": "Predictive Early Deterioration Index (EDI) Coverage",
-      "evidenceClassification": "P",
-      "isCritical": false,
+      "definition": "Computational metric assessing the proportion of high-acuity residents monitored under automated trend forecasting.",
+      "description": "Computational metric assessing the proportion of high-acuity residents monitored under automated trend forecasting.",
+      "dataSource": "Vital trend analysis engine logs",
+      "bands": [
+        { "level": "Meets", "threshold": 85, "description": "Adequate EDI coverage (>= 85%)" },
+        { "level": "Partial", "threshold": 70, "description": "Moderate coverage gaps (50% - 84%)" },
+        { "level": "Fails", "threshold": 50, "description": "Deficient monitoring coverage (< 50%)" }
+      ],
       "weight": 1.0,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "P",
+      "evidenceClassification": "P",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -409,19 +567,28 @@
         "fail": 50
       },
       "safetyGateCap": null,
-      "dataSource": "Algorithmic vital trend analysis engine logs",
-      "description": "Proposed computational framework metric assessing the proportion of high-acuity residents monitored under automated multi-parameter trend forecasting.",
       "guidance": "Proposed framework metric [P]. Non-diagnostic decision support index tracking telemetry coverage completeness."
     },
 
     {
-      "id": "DCR-01",
-      "pillarId": "DCR",
-      "code": "DCR-01",
+      "id": "CGE-01",
+      "pillarId": "CGE",
+      "code": "CGE-01",
       "name": "Informed Consent & Advance Directive Verification",
-      "evidenceClassification": "E",
-      "isCritical": true,
+      "definition": "Audited proportion of admitted residents with legally executed, unexpired advance care directives and treatment consents present in chart.",
+      "description": "Audited proportion of admitted residents with legally executed, unexpired advance care directives and treatment consents present in chart.",
+      "dataSource": "Legal health record digital signature registry & advance directive vault",
+      "bands": [
+        { "level": "Meets", "threshold": 100, "description": "Complete directive verification (100%)" },
+        { "level": "Partial", "threshold": 95, "description": "Minor administrative delay (88% - 99%)" },
+        { "level": "Fails", "threshold": 88, "description": "Missing vital directives (< 88%)" }
+      ],
       "weight": 1.8,
+      "critical": true,
+      "isCritical": true,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -430,18 +597,27 @@
         "fail": 88
       },
       "safetyGateCap": "Tier 3",
-      "dataSource": "Legal health record digital signature registry & advance directive vault",
-      "description": "Audited proportion of admitted residents with legally executed, unexpired advance care directives and treatment consents present in chart.",
       "guidance": "Established legal/clinical mandate [E]. Critical safety gate indicator. Incomplete consent or directive documentation invalidates care autonomy."
     },
     {
-      "id": "DCR-02",
-      "pillarId": "DCR",
-      "code": "DCR-02",
+      "id": "CGE-02",
+      "pillarId": "CGE",
+      "code": "CGE-02",
       "name": "Timely Nursing Assessment Documentation Signoff",
-      "evidenceClassification": "E",
-      "isCritical": false,
+      "definition": "Percentage of routine shift assessments and skin integrity checks signed off within 120 minutes of shift completion.",
+      "description": "Percentage of routine shift assessments and skin integrity checks signed off within 120 minutes of shift completion.",
+      "dataSource": "EHR shift charting timestamp deltas (completion within 2 hours of shift end)",
+      "bands": [
+        { "level": "Meets", "threshold": 90, "description": "Timely signoff (>= 90%)" },
+        { "level": "Partial", "threshold": 80, "description": "Moderate signoff delay (68% - 89%)" },
+        { "level": "Fails", "threshold": 68, "description": "Excessive signoff delay (< 68%)" }
+      ],
       "weight": 1.4,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "E",
+      "evidenceClassification": "E",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -450,18 +626,27 @@
         "fail": 68
       },
       "safetyGateCap": null,
-      "dataSource": "EHR shift charting timestamp deltas (completion within 2 hours of shift end)",
-      "description": "Percentage of routine shift assessments and skin integrity checks signed off within 120 minutes of shift completion.",
       "guidance": "Established clinical record standard [E]. Timely documentation prevents information loss during inter-shift handoffs."
     },
     {
-      "id": "DCR-03",
-      "pillarId": "DCR",
-      "code": "DCR-03",
+      "id": "CGE-03",
+      "pillarId": "CGE",
+      "code": "CGE-03",
       "name": "Audit Trail Tamper-Resistance & Revision Integrity",
-      "evidenceClassification": "I",
-      "isCritical": false,
+      "definition": "Percentage of retrospective chart amendments accompanied by legitimate clinical explanation and immutable timestamp tracking.",
+      "description": "Percentage of retrospective chart amendments accompanied by legitimate clinical explanation and immutable timestamp tracking.",
+      "dataSource": "Audit trail verifications and late-entry amendment tags",
+      "bands": [
+        { "level": "Meets", "threshold": 98, "description": "High revision integrity (>= 98%)" },
+        { "level": "Partial", "threshold": 92, "description": "Minor documentation gaps (80% - 97%)" },
+        { "level": "Fails", "threshold": 80, "description": "Unexplained revisions (< 80%)" }
+      ],
       "weight": 1.2,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "I",
+      "evidenceClassification": "I",
+      "refs": [],
       "metricType": "percentage",
       "unit": "%",
       "thresholds": {
@@ -470,18 +655,27 @@
         "fail": 80
       },
       "safetyGateCap": null,
-      "dataSource": "Cryptographic audit trail hash verifications and late-entry amendment tags",
-      "description": "Percentage of retrospective chart amendments accompanied by legitimate clinical explanation and immutable timestamp tracking.",
       "guidance": "Interpretation standard [I]. Guarantees integrity of electronic health records against illicit post-hoc record alterations."
     },
     {
-      "id": "DCR-04",
-      "pillarId": "DCR",
-      "code": "DCR-04",
+      "id": "CGE-04",
+      "pillarId": "CGE",
+      "code": "CGE-04",
       "name": "Automated Care Continuity Semantic Coherence Score",
-      "evidenceClassification": "P",
-      "isCritical": false,
+      "definition": "Computational consistency metric measuring cross-disciplinary alignment between physician orders, nursing notes, and therapist reports.",
+      "description": "Computational consistency metric measuring cross-disciplinary alignment between physician orders, nursing notes, and therapist reports.",
+      "dataSource": "Rule-based natural language consistency verification across multidisciplinary notes",
+      "bands": [
+        { "level": "Meets", "threshold": 80, "description": "Consistent multidisciplinary records (>= 80)" },
+        { "level": "Partial", "threshold": 65, "description": "Minor chart discrepancies (45 - 79)" },
+        { "level": "Fails", "threshold": 45, "description": "Conflicting clinical documentation (< 45)" }
+      ],
       "weight": 1.0,
+      "critical": false,
+      "isCritical": false,
+      "evidence": "P",
+      "evidenceClassification": "P",
+      "refs": [],
       "metricType": "scale",
       "unit": "score (0-100)",
       "thresholds": {
@@ -490,8 +684,6 @@
         "fail": 45
       },
       "safetyGateCap": null,
-      "dataSource": "Proposed rule-based natural language consistency verification across multidisciplinary notes",
-      "description": "Proposed computational consistency metric measuring cross-disciplinary alignment between physician orders, nursing notes, and PT reports.",
       "guidance": "Proposed framework metric [P]. Evaluates semantic record alignment as an audit aid. Does not substitute for clinical chart review."
     }
   ]
