@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
+import { ProtectedRoute } from '../components/auth';
 import {
   LandingPage,
   AuthPage,
@@ -21,69 +22,85 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
 
-        {/* Application Routes wrapped in CareProof AppShell */}
+        {/* Application Routes wrapped in ProtectedRoute and CareProof AppShell */}
         <Route
           path="/app/dashboard"
           element={
-            <AppShell>
-              <DashboardPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <DashboardPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/standard"
           element={
-            <AppShell>
-              <StandardPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <StandardPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/monitor"
           element={
-            <AppShell>
-              <MonitorPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <MonitorPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/pilot"
           element={
-            <AppShell>
-              <PilotPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <PilotPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/equipment"
           element={
-            <AppShell>
-              <EquipmentPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <EquipmentPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/caregivers"
           element={
-            <AppShell>
-              <CaregiversPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <CaregiversPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/incident"
           element={
-            <AppShell>
-              <IncidentPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <IncidentPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/app/settings"
           element={
-            <AppShell>
-              <SettingsPage />
-            </AppShell>
+            <ProtectedRoute>
+              <AppShell>
+                <SettingsPage />
+              </AppShell>
+            </ProtectedRoute>
           }
         />
 
@@ -94,3 +111,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

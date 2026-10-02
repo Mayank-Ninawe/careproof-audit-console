@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "test": "tsx src/tests/standardValidator.test.ts && tsx src/tests/scoring.test.ts && tsx src/tests/simulation.test.ts && tsx src/tests/auth.test.ts && tsx src/tests/scoringEngine.test.ts && tsx src/tests/routes.test.ts",
+    "test": "tsx src/tests/standardValidator.test.ts && tsx src/tests/scoring.test.ts && tsx src/tests/simulation.test.ts && tsx src/tests/auth.test.ts && tsx src/tests/authUI.test.tsx && tsx src/tests/scoringEngine.test.ts && tsx src/tests/routes.test.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

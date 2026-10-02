@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,8 +13,11 @@ import {
   X,
   Shield,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
 import { NavigationItem } from './NavigationItem';
+import { useAuth } from '../../store/authStore';
+import { signOutUser } from '../../services/auth';
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -23,6 +26,18 @@ export interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+    } catch {
+      // Allow local navigation regardless of transient signout errors
+    } finally {
+      navigate('/auth');
+    }
+  };
 
   const navGroups = [
     {
@@ -102,12 +117,22 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <ExternalLink className="w-2.5 h-2.5" />
           </Link>
           <span aria-hidden="true" className="text-[#5B6475]">|</span>
-          <Link
-            to="/auth"
-            className="hover:text-white transition-colors"
-          >
-            Auditor Sign In
-          </Link>
+          {user ? (
+            <button
+              onClick={handleSignOut}
+              className="hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <LogOut className="w-2.5 h-2.5" />
+              <span>Sign Out</span>
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="hover:text-white transition-colors"
+            >
+              Auditor Sign In
+            </Link>
+          )}
         </div>
       </div>
 
@@ -174,15 +199,32 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </nav>
 
           {/* Rail Footer Information */}
-          <div className="p-3 border-t border-[#D9D3C5] bg-[#FAF8F3]/60 text-[11px] font-mono-ledger text-[#5B6475] space-y-1">
+          <div className="p-3 border-t border-[#D9D3C5] bg-[#FAF8F3]/60 text-[11px] font-mono-ledger text-[#5B6475] space-y-2">
             <div className="flex items-center justify-between">
               <span>Standard:</span>
               <span className="font-semibold text-[#14213D]">v1.4.0</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Status:</span>
-              <span className="text-[#0F6B6E] font-medium">Shell</span>
-            </div>
+            {user && (
+              <div className="pt-2 border-t border-[#D9D3C5] space-y-1.5">
+                <div className="truncate">
+                  <span className="text-[#14213D] font-medium block truncate">
+                    {user.displayName || user.email || 'Authenticated User'}
+                  </span>
+                  {user.displayName && user.email && (
+                    <span className="text-[10px] text-[#5B6475] block truncate">
+                      {user.email}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left text-xs font-mono text-[#B3341A] hover:underline flex items-center gap-1.5 pt-1 cursor-pointer"
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 
@@ -209,9 +251,24 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </span>
             </div>
             <div className="flex items-center gap-4 text-[11px]">
-              <Link to="/auth" className="hover:text-[#14213D] transition-colors">
-                Auditor Workspace
-              </Link>
+              {user ? (
+                <>
+                  <span className="text-[#14213D] font-mono">
+                    {user.email || user.displayName}
+                  </span>
+                  <span aria-hidden="true" className="text-[#D9D3C5]">|</span>
+                  <button
+                    onClick={handleSignOut}
+                    className="hover:text-[#B3341A] transition-colors cursor-pointer text-[#5B6475]"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link to="/auth" className="hover:text-[#14213D] transition-colors">
+                  Auditor Workspace
+                </Link>
+              )}
             </div>
           </div>
 
