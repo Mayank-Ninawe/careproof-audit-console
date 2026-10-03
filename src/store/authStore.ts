@@ -12,7 +12,7 @@
 import { useSyncExternalStore } from 'react';
 import { AuthStatus, AuthUser, NormalizedAuthError } from '../types/auth';
 import { UserProfile } from '../types/userProfile';
-import { observeAuthState } from '../services/auth';
+import { observeAuthState, getStoredSession } from '../services/auth';
 
 export interface AuthState {
   status: AuthStatus;
@@ -110,9 +110,15 @@ export function initializeAuthObserver(): () => void {
     return unsubscribeAuthObserver;
   }
 
+  const stored = getStoredSession();
+  if (stored) {
+    authStore.setAuthenticated(stored.user, stored.profile || null);
+  }
+
   unsubscribeAuthObserver = observeAuthState((authUser) => {
     if (authUser) {
-      authStore.setAuthenticated(authUser, null);
+      const currentStored = getStoredSession();
+      authStore.setAuthenticated(authUser, currentStored?.profile || null);
     } else {
       authStore.setUnauthenticated(null);
     }

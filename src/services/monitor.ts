@@ -4,7 +4,7 @@
  * 
  * ARCHITECTURAL CONTRACT:
  * 1. Pure & Side-Effect Free: Zero React, DOM, or Firebase dependencies.
- * 2. Deterministic: All time calculations accept an explicit reference time.
+ * 2. Deterministic: All time calculations accept an explicit reference time. Zero hidden Date.now().
  * 3. Clinical Integrity:
  *    - No fabricated continuous lines across data gaps.
  *    - Freshness: freshness = exp(−Δt / τ)
@@ -12,7 +12,7 @@
  *    - Data-gap alert when confidence < threshold.
  * 4. RCP NEWS2 Policy:
  *    - Unverified clinical thresholds are NEVER invented.
- *    - Pluggable EarlyWarningScorer reports unconfigured status pending official RCP verification.
+ *    - EarlyWarningScorer reports "not_configured" pending official RCP verification.
  * 5. Safe Harbor:
  *    - "Proposed framework, not clinically validated. Decision support, not diagnosis."
  */
@@ -28,10 +28,11 @@ import {
   MonitorPatient,
   MonitorTimelinePoint,
   PatientMonitorViewModel,
+  ScoreBandConfiguration,
 } from '../types/monitor';
 
 export const DEFAULT_TAU_MS = 14_400_000; // 4 hours in milliseconds
-export const DEFAULT_CONFIDENCE_THRESHOLD = 0.60; // 60% confidence threshold
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.60; // 60% proposed confidence threshold
 export const DEFAULT_GAP_THRESHOLD_MS = 21_600_000; // 6 hours in milliseconds
 export const DEFAULT_EXPECTED_CHANNELS: (keyof ObservationValueMap)[] = ['channel1', 'channel2'];
 
@@ -39,7 +40,7 @@ export const CLINICAL_SAFE_HARBOR_DISCLAIMER =
   'Proposed framework, not clinically validated. Decision support, not diagnosis.';
 
 /**
- * Standard unconfigured scorer adhering to the Royal College of Physicians clinical rule.
+ * Standard unconfigured scorer adhering strictly to the Royal College of Physicians clinical rule.
  * Explicitly states that NEWS2 scoring is unconfigured pending verified source data.
  */
 export class UnconfiguredEarlyWarningScorer implements EarlyWarningScorer {
@@ -49,7 +50,7 @@ export class UnconfiguredEarlyWarningScorer implements EarlyWarningScorer {
 
   evaluate(_observations: readonly MonitorObservation[]): EarlyWarningResult {
     return {
-      status: 'unconfigured',
+      status: 'not_configured',
       scorerName: this.scorerName,
       score: null,
       band: null,
@@ -63,7 +64,7 @@ export class UnconfiguredEarlyWarningScorer implements EarlyWarningScorer {
 
 /**
  * Normalizes an arbitrary reference time input into epoch milliseconds.
- * Throws an Error if referenceTime is invalid.
+ * Throws an Error if referenceTime is invalid or absent.
  */
 export function normalizeReferenceTime(referenceTime?: Date | string | number): number {
   if (referenceTime === undefined || referenceTime === null) {
@@ -95,6 +96,10 @@ export function normalizeReferenceTime(referenceTime?: Date | string | number): 
  * Does not mutate the source dataset.
  */
 export function getMonitorPatients(dataset: SimulatedDataset): MonitorPatient[] {
+  if (!dataset || !Array.isArray(dataset.patients)) {
+    return [];
+  }
+
   return dataset.patients.map((p) => ({
     id: p.id,
     label: p.label,
@@ -113,7 +118,7 @@ export function getPatientTimeline(
   patientId: string,
   gapThresholdMs: number = DEFAULT_GAP_THRESHOLD_MS
 ): MonitorObservation[] {
-  if (!patientId || typeof patientId !== 'string') {
+  if (!dataset || !Array.isArray(dataset.observations) || !patientId || typeof patientId !== 'string') {
     return [];
   }
 
@@ -123,15 +128,18 @@ export function getPatientTimeline(
     return [];
   }
 
-  // Parse timestamps and sort chronologically
+  // Parse timestamps and sort chronologically (stable secondary sort by ID)
   const sorted = matching
     .map((obs) => ({
       ...obs,
       timestampMs: Date.parse(obs.timestamp),
     }))
-    .sort((a, b) => a.timestampMs - b.timestampMs);
+    .sort((a, b) => {
+      const diff = a.timestampMs - b.timestampMs;
+      return diff !== 0 ? diff : a.id.localeCompare(b.id);
+    });
 
-  // Compute timing gaps relative to adjacent observations
+  // Compute timing gaps relative to adjacent observations without synthetic interpolation
   return sorted.map((obs, idx) => {
     let gapDurationMs = 0;
     let hasTimingGap = obs.hasTimingGap;
@@ -160,13 +168,14 @@ export function getPatientTimeline(
 
 /**
  * Calculates field completeness for an individual observation.
- * Evaluates observed expected channels against total expected channels.
+ * Concept: observed expected fields / expected fields.
+ * Safe against empty expected fields (returns 1.0).
  */
 export function calculateObservationCompleteness(
   observation: MonitorObservation,
   expectedChannels: (keyof ObservationValueMap)[] = DEFAULT_EXPECTED_CHANNELS
 ): number {
-  if (expectedChannels.length === 0) {
+  if (!expectedChannels || expectedChannels.length === 0) {
     return 1.0;
   }
 
@@ -189,11 +198,11 @@ export function calculateTimelineCompleteness(
   observations: readonly MonitorObservation[],
   expectedChannels: (keyof ObservationValueMap)[] = DEFAULT_EXPECTED_CHANNELS
 ): number {
-  if (observations.length === 0) {
+  if (!observations || observations.length === 0) {
     return 0.0;
   }
 
-  // Evaluates completeness on the latest observation, averaged with recent timeline
+  // Evaluates completeness on the latest observation, averaged with historical observations
   const latest = observations[observations.length - 1];
   const latestRatio = calculateObservationCompleteness(latest, expectedChannels);
 
@@ -213,8 +222,10 @@ export function calculateTimelineCompleteness(
  * freshness = exp(−Δt / τ)
  * 
  * Rules:
- * - τ must be a strictly positive finite number.
- * - Negative Δt (future timestamps) are clamped to 0 without throwing.
+ * - τ must be explicitly supplied and strictly positive.
+ * - τ <= 0 or non-finite must be rejected with an Error.
+ * - Negative Δt (future timestamps) clamped safely to 0 without throwing.
+ * - Intermediate calculations not rounded.
  */
 export function calculateFreshness(deltaMs: number, tauMs: number): number {
   if (!Number.isFinite(tauMs) || tauMs <= 0) {
@@ -225,7 +236,7 @@ export function calculateFreshness(deltaMs: number, tauMs: number): number {
     return 0.0;
   }
 
-  // Safe clamping: negative elapsed time (observation in future) clamped to 0
+  // Safe handling: future timestamp clamped to elapsed delta = 0
   const effectiveDelta = Math.max(0, deltaMs);
   const freshness = Math.exp(-effectiveDelta / tauMs);
 
@@ -235,6 +246,7 @@ export function calculateFreshness(deltaMs: number, tauMs: number): number {
 /**
  * Computes telemetry confidence:
  * confidence = completeness × freshness
+ * Returns normalized numeric result without premature UI formatting.
  */
 export function calculateConfidence(
   completeness: number,
@@ -245,18 +257,22 @@ export function calculateConfidence(
   const normCompleteness = Math.max(0.0, Math.min(1.0, completeness));
   const normFreshness = Math.max(0.0, Math.min(1.0, freshness));
   const confidence = Number((normCompleteness * normFreshness).toFixed(4));
+  const effectiveDelta = Math.max(0, deltaMs);
 
   return {
     completeness: normCompleteness,
     freshness: normFreshness,
     confidence,
-    deltaTimeMs: Math.max(0, deltaMs),
+    deltaTime: effectiveDelta,
+    deltaTimeMs: effectiveDelta,
+    tau: tauMs,
     tauMs,
   };
 }
 
 /**
  * Evaluates whether a quality data-gap alert should be activated based on confidence.
+ * Threshold is explicitly exposed and treated as a proposed application parameter.
  */
 export function evaluateDataGapAlert(
   confidence: number,
@@ -268,7 +284,7 @@ export function evaluateDataGapAlert(
     isAlertActive,
     threshold,
     reason: isAlertActive
-      ? 'Data-gap alert: telemetry confidence is reduced because observations are incomplete or stale.'
+      ? 'Confidence reduced because observation data are incomplete and/or stale.'
       : null,
     isProposedParameter: true,
   };
@@ -294,8 +310,8 @@ export function createTimelinePoints(
  * 
  * @param dataset The synthetic simulation dataset.
  * @param patientId The target synthetic patient ID.
- * @param config Optional monitor configurations (tauMs, thresholds, expected channels).
- * @param referenceTime Explicit reference timestamp representing "now" (required for deterministic testing).
+ * @param config Optional monitor configurations (tauMs, thresholds, expected channels, scorer).
+ * @param referenceTime Explicit reference timestamp representing "now" (mandatory for deterministic execution).
  */
 export function createPatientMonitorViewModel(
   dataset: SimulatedDataset,
@@ -303,7 +319,7 @@ export function createPatientMonitorViewModel(
   config?: MonitorConfig,
   referenceTime?: Date | string | number
 ): PatientMonitorViewModel {
-  const tauMs = config?.tauMs ?? DEFAULT_TAU_MS;
+  const tauMs = config?.tauMs ?? config?.tau ?? DEFAULT_TAU_MS;
   const confidenceThreshold = config?.confidenceThreshold ?? DEFAULT_CONFIDENCE_THRESHOLD;
   const gapThresholdMs = config?.gapThresholdMs ?? DEFAULT_GAP_THRESHOLD_MS;
   const expectedChannels = config?.expectedChannels ?? DEFAULT_EXPECTED_CHANNELS;
@@ -311,10 +327,10 @@ export function createPatientMonitorViewModel(
 
   // Validate tau
   if (!Number.isFinite(tauMs) || tauMs <= 0) {
-    throw new Error(`Invalid tauMs configuration: must be a positive finite number, received ${tauMs}`);
+    throw new Error(`Invalid tau constant: must be a positive finite number, received ${tauMs}`);
   }
 
-  // Resolve reference time
+  // Resolve explicit reference time (zero hidden Date.now())
   const refTimeMs = referenceTime !== undefined
     ? normalizeReferenceTime(referenceTime)
     : Date.parse(dataset.generatedAt);
@@ -322,7 +338,7 @@ export function createPatientMonitorViewModel(
   const referenceTimeIso = new Date(refTimeMs).toISOString();
 
   // 1. Find patient
-  const rawPatient = dataset.patients.find((p) => p.id === patientId);
+  const rawPatient = dataset.patients?.find((p) => p.id === patientId);
   const patientFound = Boolean(rawPatient);
 
   const selectedPatient: MonitorPatient | null = rawPatient
@@ -366,22 +382,39 @@ export function createPatientMonitorViewModel(
   );
 
   // 5. Data-gap alert
-  const dataGapAlert = evaluateDataGapAlert(confidenceResult.confidence, confidenceThreshold);
+  const dataGapAlertDetails = evaluateDataGapAlert(confidenceResult.confidence, confidenceThreshold);
 
   // 6. Early-warning scorer result (unconfigured pending RCP verification)
   const earlyWarningResult = scorer.evaluate(timeline);
 
+  // 7. Typed Score Band Configuration (unconfigured)
+  const scoreBandConfiguration: ScoreBandConfiguration = {
+    status: 'not_configured',
+    bands: null,
+    clinicalSource: null,
+  };
+
   return {
     selectedPatient,
     patientFound,
+    orderedObservations: timeline,
     timeline,
     timelinePoints,
     latestObservation,
     lastObservationAt,
+    timeSinceLastObservation: timeSinceLastObservationMs,
     timeSinceLastObservationMs,
+    completeness: confidenceResult.completeness,
+    freshness: confidenceResult.freshness,
+    confidence: confidenceResult.confidence,
+    confidenceThreshold,
     confidenceResult,
-    dataGapAlert,
+    dataGapAlert: dataGapAlertDetails.isAlertActive,
+    dataGapAlertDetails,
+    dataGapReason: dataGapAlertDetails.reason,
     earlyWarningResult,
+    scoreConfigurationStatus: scorer.isConfigured ? 'configured' : 'not_configured',
+    scoreBandConfiguration,
     config: {
       tauMs,
       confidenceThreshold,

@@ -1,11 +1,15 @@
 /**
  * CareProof Audit Console - Authentication Domain Types
- * Single Source of Truth for Auth State, Roles, and Normalized Errors
+ * Single Source of Truth for Auth State, Roles, and Credentials
+ * 
+ * CORE CONTRACT:
+ * 1. Simple Email & Password authentication.
+ * 2. Client-side roles represent UI evaluation context only, not server authorization boundaries.
  */
 
 /**
  * Roadmap canonical user roles.
- * Client-side roles represent UI context only and do NOT serve as authorization security boundaries.
+ * Client-side roles represent UI perspective context only and do NOT serve as authorization security boundaries.
  */
 export type AuthRole = 'family' | 'agency' | 'auditor';
 
@@ -19,8 +23,8 @@ export function isValidAuthRole(role: unknown): role is AuthRole {
 }
 
 /**
- * Clean application domain representation of an authenticated Firebase user.
- * Exposes only necessary fields without extraneous PII or credentials.
+ * Clean application domain representation of an authenticated user.
+ * Exposes only necessary identity fields without extraneous PII or credentials.
  */
 export interface AuthUser {
   uid: string;
@@ -44,6 +48,7 @@ export type AuthErrorCode =
   | 'weak_password'
   | 'network_error'
   | 'too_many_requests'
+  | 'operation_not_allowed'
   | 'unknown_auth_error';
 
 /**
@@ -54,4 +59,22 @@ export interface NormalizedAuthError {
   message: string;
   rawCode?: string;
   originalError?: unknown;
+}
+
+/**
+ * Standard email and password sign-in credentials.
+ */
+export interface EmailPasswordCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * Standard registration credentials.
+ */
+export interface SignupCredentials {
+  email: string;
+  password: string;
+  displayName: string;
+  role: AuthRole;
 }

@@ -1,16 +1,15 @@
 /**
- * CareProof Audit Console - Production Authentication Page
- * Source of Truth: CareProof Website Roadmap (Phase 5B)
+ * CareProof Audit Console - Simple Email & Password Authentication Page
  * 
- * DESIGN SPECIFICATION:
- * - Split layout: Left panel = restrained "audit dossier", Right panel = authentication form.
- * - Login / Sign Up toggle with inline validation.
- * - Show/hide password controls with accessible labels.
- * - Application role picker (Family, Agency, Auditor) during signup.
- * - Real Firebase Auth integration (signInWithEmail, signUpWithEmail).
- * - Normalized error alerts, disabled loading states.
- * - Honest demo auditor entry disclosure (no fake authentication).
- * - Automatic redirect to /app/dashboard if already authenticated.
+ * CORE CONTRACT:
+ * 1. Simple Email & Password authentication only.
+ * 2. Zero Google / 3rd-party OAuth providers.
+ * 3. Split layout: Left panel = restrained "audit dossier", Right panel = email/password access.
+ * 4. Mode switcher tabs: "Sign In" and "Create Account".
+ * 5. Show/hide password controls with accessible labels.
+ * 6. Application role picker (Family, Agency, Auditor) during account registration.
+ * 7. Automatic redirect to /app/dashboard when authenticated.
+ * 8. Honest Demo Auditor disclosure modal (does not inject fake credentials).
  */
 
 import React, { useState } from 'react';
@@ -27,7 +26,7 @@ import {
   Info,
   X,
 } from 'lucide-react';
-import { useAuth } from '../../store/authStore';
+import { useAuth, authStore } from '../../store/authStore';
 import { signInWithEmail, signUpWithEmail } from '../../services/auth';
 import { AuthRole, isValidAuthRole } from '../../types/auth';
 
@@ -60,7 +59,7 @@ const ROLE_OPTIONS: readonly RoleOption[] = [
 export const AuthPage: React.FC = () => {
   const { status } = useAuth();
 
-  // View state
+  // Mode & visibility state
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -104,7 +103,7 @@ export const AuthPage: React.FC = () => {
     // Signup-specific validation
     if (mode === 'signup') {
       if (!displayName.trim()) {
-        errors.displayName = 'Full name / designation is required.';
+        errors.displayName = 'Full name / professional designation is required.';
       }
 
       if (!confirmPassword) {
@@ -133,12 +132,29 @@ export const AuthPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       if (mode === 'login') {
-        await signInWithEmail(email.trim(), password);
+        const user = await signInWithEmail(email.trim(), password);
+        authStore.setAuthenticated(user, {
+          uid: user.uid,
+          role: selectedRole,
+          displayName: user.displayName,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       } else {
-        await signUpWithEmail(email.trim(), password, displayName.trim());
+        const user = await signUpWithEmail(
+          email.trim(),
+          password,
+          displayName.trim(),
+          selectedRole
+        );
+        authStore.setAuthenticated(user, {
+          uid: user.uid,
+          role: selectedRole,
+          displayName: user.displayName,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       }
-      // Auth observer automatically transitions status to 'authenticated',
-      // triggering the redirect to /app/dashboard above.
     } catch (err: unknown) {
       const normalized = err as { message?: string };
       setAuthError(normalized?.message || 'Authentication failed. Please verify credentials.');
@@ -175,7 +191,7 @@ export const AuthPage: React.FC = () => {
       {/* Main Split Layout Container */}
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1240px] w-full mx-auto p-4 sm:p-6 lg:p-8 gap-6 lg:gap-8 items-stretch justify-center">
         {/* LEFT PANEL: Restrained Audit Dossier */}
-        <aside className="w-full lg:w-[420px] bg-white border border-[#D9D3C5] rounded-[2px] p-6 sm:p-8 flex flex-col justify-between shrink-0">
+        <aside className="w-full lg:w-[420px] bg-white border border-[#D9D3C5] rounded-[2px] p-6 sm:p-8 flex flex-col justify-between shrink-0 text-left">
           <div>
             {/* Header Badge */}
             <div className="flex items-center justify-between border-b border-[#D9D3C5] pb-4 mb-6">
@@ -206,23 +222,23 @@ export const AuthPage: React.FC = () => {
               <ul className="space-y-2 text-xs text-[#14213D] m-0 p-0 list-none">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6E] shrink-0 mt-0.5" />
-                  <span><strong>CSP:</strong> Clinical Safety Protocols & Verification</span>
+                  <span><strong>CSP:</strong> Clinical Safety Protocols &amp; Verification</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6E] shrink-0 mt-0.5" />
-                  <span><strong>CSW:</strong> Staffing Competency & Ratio Alignment</span>
+                  <span><strong>CSW:</strong> Staffing Competency &amp; Ratio Alignment</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6E] shrink-0 mt-0.5" />
-                  <span><strong>EEH:</strong> Equipment Calibration & Telemetry Safety</span>
+                  <span><strong>EEH:</strong> Equipment Calibration &amp; Telemetry Safety</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6E] shrink-0 mt-0.5" />
-                  <span><strong>PMI:</strong> Continuous Monitoring & Alarm Latency</span>
+                  <span><strong>PMI:</strong> Continuous Monitoring &amp; Alarm Latency</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6B6E] shrink-0 mt-0.5" />
-                  <span><strong>CGE:</strong> Caregiver Transparency & Engagement</span>
+                  <span><strong>CGE:</strong> Caregiver Transparency &amp; Engagement</span>
                 </li>
               </ul>
             </div>
@@ -234,7 +250,7 @@ export const AuthPage: React.FC = () => {
                 <span>CRYPTOGRAPHIC AUDIT TRAIL</span>
               </div>
               <p className="text-[11px] leading-relaxed m-0 text-[#5B6475]">
-                Assessments are cryptographically sealed. Identity credentials are required to evaluate compliance ledgers and inspect telemetry evidence.
+                Assessments are cryptographically sealed. Accredited credentials are required to evaluate compliance ledgers and telemetry evidence.
               </p>
             </div>
           </div>
@@ -244,8 +260,8 @@ export const AuthPage: React.FC = () => {
           </div>
         </aside>
 
-        {/* RIGHT PANEL: Authentication Form */}
-        <main className="flex-1 max-w-xl bg-white border border-[#D9D3C5] rounded-[2px] p-6 sm:p-8 flex flex-col justify-between">
+        {/* RIGHT PANEL: Email & Password Authentication Form */}
+        <main className="flex-1 max-w-xl bg-white border border-[#D9D3C5] rounded-[2px] p-6 sm:p-8 flex flex-col justify-between text-left">
           <div>
             {/* Mode Switcher Tabs */}
             <div className="flex items-center border-b border-[#D9D3C5] mb-6">
@@ -277,7 +293,7 @@ export const AuthPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Mode Title & Description */}
+            {/* Title & Description */}
             <div className="mb-6">
               <h1 className="font-display font-bold text-xl text-[#14213D] tracking-tight mb-1">
                 {mode === 'login' ? 'Auditor Workspace Sign In' : 'Register Auditor Account'}
@@ -293,7 +309,7 @@ export const AuthPage: React.FC = () => {
             {authError && (
               <div
                 role="alert"
-                className="mb-5 p-3 bg-[#FAF0ED] border border-[#B3341A]/30 rounded-[2px] flex items-start gap-2.5 text-xs text-[#B3341A]"
+                className="mb-5 p-3.5 bg-[#FAF0ED] border border-[#B3341A]/30 rounded-[2px] flex items-start gap-2.5 text-xs text-[#B3341A]"
               >
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
@@ -303,9 +319,9 @@ export const AuthPage: React.FC = () => {
               </div>
             )}
 
-            {/* Form */}
+            {/* Email & Password Form */}
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              {/* Sign Up: Display Name */}
+              {/* Display Name for Signup */}
               {mode === 'signup' && (
                 <div className="flex flex-col gap-1 w-full text-left">
                   <label htmlFor="auth-display-name" className="text-xs font-semibold text-[#14213D]">
@@ -413,7 +429,7 @@ export const AuthPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Sign Up: Confirm Password */}
+              {/* Confirm Password for Signup */}
               {mode === 'signup' && (
                 <div className="flex flex-col gap-1 w-full text-left">
                   <label htmlFor="auth-confirm-password" className="text-xs font-semibold text-[#14213D]">
@@ -456,11 +472,11 @@ export const AuthPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Sign Up: Role Picker */}
+              {/* Role Picker for Signup */}
               {mode === 'signup' && (
                 <div className="pt-2 text-left">
                   <div className="text-xs font-semibold text-[#14213D] mb-1.5 flex items-center justify-between">
-                    <span>Application Role & Perspective <span className="text-[#B3341A]">*</span></span>
+                    <span>Application Perspective Role <span className="text-[#B3341A]">*</span></span>
                     <span className="text-[10px] text-[#5B6475] font-mono">Select one</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Application Role">
@@ -502,7 +518,7 @@ export const AuthPage: React.FC = () => {
                     </span>
                   )}
                   <p className="text-[10px] text-[#5B6475] font-mono mt-1.5 m-0">
-                    Application roles configure contextual views and do not bypass server authorization rules.
+                    Application roles configure contextual perspective and do not bypass server security boundaries.
                   </p>
                 </div>
               )}
@@ -607,7 +623,7 @@ export const AuthPage: React.FC = () => {
             </p>
 
             <div className="p-3 bg-[#FAF8F3] border border-[#D9D3C5] rounded-[2px] text-[11px] font-mono text-[#5B6475] mb-5">
-              <span>SECURITY NOTICE: CareProof does not bypass Firebase authentication with mock sessions. Live workspaces require valid credentials.</span>
+              <span>SECURITY NOTICE: CareProof does not bypass authentication with mock sessions. Live workspaces require valid credentials.</span>
             </div>
 
             <div className="flex justify-end">

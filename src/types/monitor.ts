@@ -23,7 +23,7 @@ import { ObservationValueMap } from './simulation';
 export interface MonitorPatient {
   id: string;                 // e.g. "PAT-001"
   label: string;              // e.g. "Synthetic Patient 001"
-  observationProfile: string;   // e.g. "Profile-Alpha"
+  observationProfile: string; // e.g. "Profile-Alpha"
   status: string;             // e.g. "active", "monitored"
   isSimulated: true;
 }
@@ -60,12 +60,14 @@ export interface ConfidenceResult {
   completeness: number;       // [0.0, 1.0]
   freshness: number;          // [0.0, 1.0]
   confidence: number;         // [0.0, 1.0]
-  deltaTimeMs: number;        // Elapsed milliseconds since last observation
-  tauMs: number;              // Half-life decay constant in milliseconds
+  deltaTime: number;          // Elapsed milliseconds (or delta time units)
+  deltaTimeMs: number;        // Backward compatible alias
+  tau: number;                // Configurable time constant
+  tauMs: number;              // Backward compatible alias
 }
 
 /**
- * Quality-driven data-gap alert triggered when confidence falls below the proposed threshold.
+ * Quality-driven data-gap alert triggered when confidence falls below proposed threshold.
  */
 export interface DataGapAlert {
   isAlertActive: boolean;
@@ -86,11 +88,21 @@ export interface ScoreBand {
 }
 
 /**
+ * Typed score band configuration model.
+ * If no approved/verifiable band configuration exists, status is "not_configured".
+ */
+export interface ScoreBandConfiguration {
+  status: 'configured' | 'not_configured';
+  bands: ScoreBand[] | null;
+  clinicalSource: string | null;
+}
+
+/**
  * Pluggable early warning scoring result.
  * Explicitly states if scoring configuration is absent or unconfigured.
  */
 export interface EarlyWarningResult {
-  status: 'unconfigured' | 'evaluated' | 'insufficient_data';
+  status: 'not_configured' | 'unconfigured' | 'evaluated' | 'insufficient_data';
   scorerName: string;
   score: number | null;
   band: ScoreBand | null;
@@ -121,6 +133,11 @@ export interface MonitorConfig {
   tauMs?: number;
 
   /**
+   * Alias for tauMs.
+   */
+  tau?: number;
+
+  /**
    * Confidence threshold triggering a data-gap alert [0.0, 1.0].
    * Default: 0.60.
    */
@@ -147,19 +164,40 @@ export interface MonitorConfig {
 
 /**
  * Top-level view model for the Patient Monitor.
- * Provides pure, pre-calculated telemetry metadata ready for rendering.
+ * Pure, pre-calculated telemetry metadata ready for rendering.
  */
 export interface PatientMonitorViewModel {
+  // Selected Patient
   selectedPatient: MonitorPatient | null;
   patientFound: boolean;
-  timeline: MonitorObservation[];
+
+  // Observations & Timeline
+  orderedObservations: MonitorObservation[];
+  timeline: MonitorObservation[];               // Backward compatibility
   timelinePoints: MonitorTimelinePoint[];
   latestObservation: MonitorObservation | null;
   lastObservationAt: string | null;
-  timeSinceLastObservationMs: number | null;
+  timeSinceLastObservation: number | null;
+  timeSinceLastObservationMs: number | null;     // Backward compatibility
+
+  // Quality Metrics
+  completeness: number;
+  freshness: number;
+  confidence: number;
+  confidenceThreshold: number;
   confidenceResult: ConfidenceResult;
-  dataGapAlert: DataGapAlert;
+
+  // Data-gap alert
+  dataGapAlert: boolean;
+  dataGapAlertDetails: DataGapAlert;
+  dataGapReason: string | null;
+
+  // Clinical Scorer & Bands
   earlyWarningResult: EarlyWarningResult;
+  scoreConfigurationStatus: 'configured' | 'not_configured' | 'unconfigured';
+  scoreBandConfiguration: ScoreBandConfiguration | null;
+
+  // Configuration snapshot
   config: {
     tauMs: number;
     confidenceThreshold: number;
@@ -167,6 +205,8 @@ export interface PatientMonitorViewModel {
     expectedChannels: (keyof ObservationValueMap)[];
     earlyWarningScorerStatus: string;
   };
+
+  // Safe Harbor & Simulation Metadata
   referenceTime: string;      // ISO timestamp used as reference "now"
   isSimulated: true;          // Explicit synthetic marker
   disclaimer: string;         // Safe harbor decision-support notice
