@@ -10,3 +10,16 @@ export * from './simulation';
 export * from './auth';
 export * from './userProfile';
 export * from './dashboard';
+export * from './standardExplorer';
+export {
+  type MonitorPatient,
+  type MonitorObservation,
+  type MonitorTimelinePoint,
+  type ConfidenceResult as TelemetryConfidenceResult,
+  type DataGapAlert,
+  type ScoreBand,
+  type EarlyWarningResult,
+  type EarlyWarningScorer,
+  type MonitorConfig,
+  type PatientMonitorViewModel,
+} from './monitor';

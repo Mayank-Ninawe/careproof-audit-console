@@ -15,7 +15,7 @@
  *   G. Simulation disclosure / methodology note
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Panel } from '../../components/ui/Panel';
 import { ScoreStamp } from '../../components/ui/ScoreStamp';
@@ -28,7 +28,7 @@ import {
 } from '../../components/dashboard';
 import { getDefaultDashboardViewModel } from '../../services/dashboard';
 import { DashboardViewModel } from '../../types/dashboard';
-import { Shield, RotateCw, AlertTriangle, FileText, Info } from 'lucide-react';
+import { RotateCw, AlertTriangle, FileText, Info } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const [seed, setSeed] = useState<number>(42);
