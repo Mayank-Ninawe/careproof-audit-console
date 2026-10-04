@@ -18,8 +18,11 @@ export {
   type ConfidenceResult as TelemetryConfidenceResult,
   type DataGapAlert,
   type ScoreBand,
+  type ScoreBandConfiguration,
   type EarlyWarningResult,
   type EarlyWarningScorer,
   type MonitorConfig,
   type PatientMonitorViewModel,
 } from './monitor';
+export * from './equipment';
+export * from './caregiver';

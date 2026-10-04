@@ -407,8 +407,10 @@ test('23. same inputs produce identical outputs', () => {
 // 24. Changing reference time changes freshness/confidence deterministically
 test('24. changing reference time changes freshness/confidence deterministically', () => {
   const patientId = dataset.patients[0].id;
-  const tEarly = '2026-01-15T12:00:00.000Z';
-  const tLate = '2026-01-15T20:00:00.000Z'; // +8 hours
+  const timeline = getPatientTimeline(dataset, patientId);
+  const latestMs = timeline[timeline.length - 1].timestampMs;
+  const tEarly = new Date(latestMs + 1 * 3600 * 1000).toISOString();
+  const tLate = new Date(latestMs + 5 * 3600 * 1000).toISOString(); // +4 hours
 
   const vmEarly = createPatientMonitorViewModel(dataset, patientId, {}, tEarly);
   const vmLate = createPatientMonitorViewModel(dataset, patientId, {}, tLate);

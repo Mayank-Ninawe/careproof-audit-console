@@ -100,13 +100,15 @@ export function getMonitorPatients(dataset: SimulatedDataset): MonitorPatient[] 
     return [];
   }
 
-  return dataset.patients.map((p) => ({
-    id: p.id,
-    label: p.label,
-    observationProfile: p.observationProfile,
-    status: p.status,
-    isSimulated: true,
-  }));
+  return dataset.patients
+    .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && p.id.trim().length > 0)
+    .map((p) => ({
+      id: p.id,
+      label: p.label ?? `Patient ${p.id}`,
+      observationProfile: p.observationProfile ?? 'Standard',
+      status: p.status ?? 'active',
+      isSimulated: true,
+    }));
 }
 
 /**
@@ -123,17 +125,23 @@ export function getPatientTimeline(
   }
 
   // Filter observations strictly belonging to the specified patient
-  const matching = dataset.observations.filter((obs) => obs.patientId === patientId);
+  const matching = dataset.observations.filter((obs) => obs && obs.patientId === patientId);
   if (matching.length === 0) {
     return [];
   }
 
   // Parse timestamps and sort chronologically (stable secondary sort by ID)
   const sorted = matching
-    .map((obs) => ({
-      ...obs,
-      timestampMs: Date.parse(obs.timestamp),
-    }))
+    .map((obs) => {
+      const timestampMs = Date.parse(obs.timestamp);
+      if (!Number.isFinite(timestampMs) || Number.isNaN(timestampMs)) {
+        throw new Error(`Invalid observation timestamp: "${obs.timestamp}" on observation ${obs.id}`);
+      }
+      return {
+        ...obs,
+        timestampMs,
+      };
+    })
     .sort((a, b) => {
       const diff = a.timestampMs - b.timestampMs;
       return diff !== 0 ? diff : a.id.localeCompare(b.id);
@@ -142,7 +150,7 @@ export function getPatientTimeline(
   // Compute timing gaps relative to adjacent observations without synthetic interpolation
   return sorted.map((obs, idx) => {
     let gapDurationMs = 0;
-    let hasTimingGap = obs.hasTimingGap;
+    let hasTimingGap = obs.hasTimingGap ?? false;
 
     if (idx > 0) {
       const prevMs = sorted[idx - 1].timestampMs;
@@ -181,7 +189,7 @@ export function calculateObservationCompleteness(
 
   let presentCount = 0;
   for (const channel of expectedChannels) {
-    const val = observation.values[channel];
+    const val = observation.values?.[channel];
     if (val !== undefined && val !== null) {
       presentCount++;
     }
@@ -193,6 +201,7 @@ export function calculateObservationCompleteness(
 /**
  * Calculates overall telemetry completeness for a patient's timeline.
  * Does not assume missing values mean clinical failure (Missing ≠ Abnormal).
+ * Intermediate calculations are not rounded.
  */
 export function calculateTimelineCompleteness(
   observations: readonly MonitorObservation[],
@@ -213,8 +222,8 @@ export function calculateTimelineCompleteness(
   }
   const averageRatio = totalRatio / observations.length;
 
-  // Blends latest observation (60%) with historical average (40%)
-  return Number((latestRatio * 0.6 + averageRatio * 0.4).toFixed(4));
+  // Blends latest observation (60%) with historical average (40%) without premature rounding
+  return Math.max(0.0, Math.min(1.0, latestRatio * 0.6 + averageRatio * 0.4));
 }
 
 /**
@@ -233,7 +242,7 @@ export function calculateFreshness(deltaMs: number, tauMs: number): number {
   }
 
   if (!Number.isFinite(deltaMs)) {
-    return 0.0;
+    throw new Error(`Invalid deltaMs: must be a finite number, received ${deltaMs}`);
   }
 
   // Safe handling: future timestamp clamped to elapsed delta = 0
@@ -246,7 +255,7 @@ export function calculateFreshness(deltaMs: number, tauMs: number): number {
 /**
  * Computes telemetry confidence:
  * confidence = completeness × freshness
- * Returns normalized numeric result without premature UI formatting.
+ * Returns normalized numeric result without premature rounding or UI formatting.
  */
 export function calculateConfidence(
   completeness: number,
@@ -256,7 +265,7 @@ export function calculateConfidence(
 ): ConfidenceResult {
   const normCompleteness = Math.max(0.0, Math.min(1.0, completeness));
   const normFreshness = Math.max(0.0, Math.min(1.0, freshness));
-  const confidence = Number((normCompleteness * normFreshness).toFixed(4));
+  const confidence = Math.max(0.0, Math.min(1.0, normCompleteness * normFreshness));
   const effectiveDelta = Math.max(0, deltaMs);
 
   return {
