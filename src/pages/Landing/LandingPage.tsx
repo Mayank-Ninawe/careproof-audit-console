@@ -42,11 +42,19 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] text-[#14213D] flex flex-col font-body">
+      {/* Accessible Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-1.5 focus:bg-[#14213D] focus:text-[#FAF8F3] focus:border focus:border-[#D9D3C5] focus:text-xs focus:font-mono"
+      >
+        Skip to main content
+      </a>
+
       {/* 1. Public Header */}
       <PublicHeader />
 
       {/* Main Public Content */}
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
         {/* 2. Hero */}
         <HeroSection viewModel={dashboardVm} />
 

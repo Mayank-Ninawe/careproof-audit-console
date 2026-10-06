@@ -101,6 +101,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#FAF8F3] text-[#14213D] flex flex-col font-body">
+      {/* Accessible Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-1.5 focus:bg-[#14213D] focus:text-[#FAF8F3] focus:border focus:border-[#D9D3C5] focus:text-xs focus:font-mono"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Clinical Disclaimer */}
       <div className="bg-[#14213D] text-[#FAF8F3] px-4 py-1 text-[11px] font-mono-ledger flex items-center justify-between border-b border-[#14213D]">
         <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -152,7 +160,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           <button
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
             aria-label="Toggle navigation menu"
-            className="p-1.5 text-[#14213D] border border-[#D9D3C5] rounded-[2px] hover:bg-[#FAF8F3]"
+            aria-expanded={mobileNavOpen}
+            aria-controls="navigation-rail"
+            className="p-1.5 text-[#14213D] border border-[#D9D3C5] rounded-[2px] hover:bg-[#FAF8F3] cursor-pointer"
           >
             {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -160,6 +170,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
         {/* Left Navigation Rail (Desktop + Mobile Drawer) */}
         <aside
+          id="navigation-rail"
+          aria-label="Application navigation"
           className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-[#D9D3C5] transform transition-transform duration-150 ease-in-out md:translate-x-0 md:static md:w-60 md:shrink-0 flex flex-col ${
             mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
@@ -248,7 +260,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         )}
 
         {/* Main Application Stage */}
-        <main className="flex-1 flex flex-col min-w-0">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col min-w-0 outline-none">
           {/* Desktop Sub-Header Bar (Application Context) */}
           <div className="hidden md:flex items-center justify-between px-6 py-2.5 bg-white border-b border-[#D9D3C5] text-xs font-mono-ledger text-[#5B6475]">
             <div className="flex items-center gap-2">

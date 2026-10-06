@@ -53,8 +53,9 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ className 
     <section
       id="how-it-works"
       aria-labelledby="how-it-works-heading"
-      className={`border-b border-[#D9D3C5] bg-[#FAF8F3] py-12 sm:py-16 ${className}`}
+      className={`border-b border-[#D9D3C5] bg-[#FAF8F3] py-12 sm:py-16 scroll-mt-16 ${className}`}
     >
+      <div id="evidence" className="scroll-mt-20" aria-hidden="true" />
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-left mb-8 max-w-2xl">
