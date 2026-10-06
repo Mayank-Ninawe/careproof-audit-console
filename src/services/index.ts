@@ -11,3 +11,4 @@ export * from './monitor';
 export * from './equipment';
 export * from './caregiver';
 export * from './pilot';
+export * from './incident';

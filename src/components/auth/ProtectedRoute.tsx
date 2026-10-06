@@ -21,6 +21,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { status } = useAuth();
   const location = useLocation();
 
+  // Allow read-only sample/demo audit access without authentication
+  const searchParams = new URLSearchParams(location.search);
+  const isDemo = searchParams.get('mode') === 'demo';
+  if (isDemo) {
+    return <>{children}</>;
+  }
+
   if (status === 'loading') {
     return (
       <div

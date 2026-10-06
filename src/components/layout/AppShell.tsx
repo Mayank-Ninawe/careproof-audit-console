@@ -28,6 +28,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isDemo = new URLSearchParams(location.search).get('mode') === 'demo';
 
   const handleSignOut = async () => {
     try {
@@ -186,7 +187,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   {group.items.map((item) => (
                     <NavigationItem
                       key={item.to}
-                      to={item.to}
+                      to={isDemo ? `${item.to}?mode=demo` : item.to}
                       label={item.label}
                       icon={item.icon}
                       badge={item.badge}
@@ -204,7 +205,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <span>Standard:</span>
               <span className="font-semibold text-[#14213D]">v1.4.0</span>
             </div>
-            {user && (
+            {user ? (
               <div className="pt-2 border-t border-[#D9D3C5] space-y-1.5">
                 <div className="truncate">
                   <span className="text-[#14213D] font-medium block truncate">
@@ -223,6 +224,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   <LogOut className="w-3 h-3" />
                   <span>Sign Out</span>
                 </button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-[#D9D3C5] space-y-1">
+                <span className="text-[10px] font-mono uppercase text-[#0F6B6E] font-semibold block">
+                  {isDemo ? 'Sample Audit (Read-Only)' : 'Guest Session'}
+                </span>
+                <Link to="/auth" className="text-[11px] text-[#0F6B6E] hover:underline block font-body">
+                  Sign in for full access &rarr;
+                </Link>
               </div>
             )}
           </div>

@@ -16,6 +16,7 @@
  */
 
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Panel } from '../../components/ui/Panel';
 import { ScoreStamp } from '../../components/ui/ScoreStamp';
@@ -89,9 +90,35 @@ export const DashboardPage: React.FC = () => {
 
   const { summary, pillars, fixFirstList, recentEvents, openIssueCount, disclaimer } = viewModel;
   const assessedPillarsCount = pillars.filter((p) => p.status === 'assessed').length;
+  const location = useLocation();
+  const isDemo = new URLSearchParams(location.search).get('mode') === 'demo';
 
   return (
     <div className="text-left font-body">
+      {/* Read-Only Demo Banner */}
+      {isDemo && (
+        <div
+          role="region"
+          aria-label="Demo mode notice"
+          className="mb-4 p-3 bg-[#0F6B6E]/10 border border-[#0F6B6E]/30 rounded-[2px] flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#0F6B6E]"
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-bold px-1.5 py-0.5 bg-[#0F6B6E] text-white rounded-[2px] text-[10px]">
+              READ-ONLY SAMPLE
+            </span>
+            <span>
+              Simulated demonstration audit loaded. No changes persist to Firebase.
+            </span>
+          </div>
+          <Link
+            to="/auth"
+            className="text-xs font-semibold text-[#0F6B6E] hover:underline"
+          >
+            Sign in for full auditor console &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* SECTION A: Page Header */}
       <PageHeader
         title="Dashboard"

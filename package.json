@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "test": "tsx src/tests/standardValidator.test.ts && tsx src/tests/scoring.test.ts && tsx src/tests/simulation.test.ts && tsx src/tests/auth.test.ts && tsx src/tests/authUI.test.tsx && tsx src/tests/dashboard.test.ts && tsx src/tests/dashboardUI.test.tsx && tsx src/tests/standardExplorer.test.ts && tsx src/tests/standardExplorerUI.test.tsx && tsx src/tests/monitor.test.ts && tsx src/tests/monitorUI.test.tsx && tsx src/tests/equipment.test.ts && tsx src/tests/equipmentUI.test.tsx && tsx src/tests/caregiver.test.ts && tsx src/tests/caregiverUI.test.tsx && tsx src/tests/scoringEngine.test.ts && tsx src/tests/routes.test.ts && tsx src/tests/pilot.test.ts && tsx src/tests/pilotUI.test.tsx",
+    "test": "tsx src/tests/standardValidator.test.ts && tsx src/tests/scoring.test.ts && tsx src/tests/simulation.test.ts && tsx src/tests/auth.test.ts && tsx src/tests/authUI.test.tsx && tsx src/tests/dashboard.test.ts && tsx src/tests/dashboardUI.test.tsx && tsx src/tests/standardExplorer.test.ts && tsx src/tests/standardExplorerUI.test.tsx && tsx src/tests/monitor.test.ts && tsx src/tests/monitorUI.test.tsx && tsx src/tests/equipment.test.ts && tsx src/tests/equipmentUI.test.tsx && tsx src/tests/caregiver.test.ts && tsx src/tests/caregiverUI.test.tsx && tsx src/tests/scoringEngine.test.ts && tsx src/tests/routes.test.ts && tsx src/tests/pilot.test.ts && tsx src/tests/pilotUI.test.tsx && tsx src/tests/incident.test.ts && tsx src/tests/incidentUI.test.tsx && tsx src/tests/landingUI.test.tsx",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
