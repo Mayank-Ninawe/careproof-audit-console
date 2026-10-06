@@ -329,6 +329,7 @@ The build produces optimized ES modules, CSS bundles, self-hosted font assets, a
 The application is built as a static Single Page Application (SPA) with pre-configured rewrite support for multiple deployment environments:
 
 * **Vite SPA Fallback**: Configured via `vercel.json` (Vercel rewrites) and `public/_redirects` (Netlify and Cloudflare Pages SPA rules) to ensure deep routes like `/app/dashboard?mode=demo` resolve cleanly.
+* **Live Deployment**: [Live Deployment](https://careproof-audit-consolee.ai.studio/)
 * **Hosted Cloud Preview URLs**:
   * Shared Preview URL: `https://ais-pre-arandxhxn52nc5e2msyqyw-1060888724685.asia-southeast1.run.app`
   * Development Preview URL: `https://ais-dev-arandxhxn52nc5e2msyqyw-1060888724685.asia-southeast1.run.app`
