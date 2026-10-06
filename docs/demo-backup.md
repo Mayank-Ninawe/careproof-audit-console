@@ -48,6 +48,8 @@ npm run preview
 
 ## C. Demo URLs
 
+* **Live Deployment**:
+  `https://careproof-audit-consolee.ai.studio/`
 * **Hosted Shared Preview App**:
   `https://ais-pre-arandxhxn52nc5e2msyqyw-1060888724685.asia-southeast1.run.app`
 * **Hosted Development Preview App**:

@@ -75,6 +75,17 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ className = '' }) =>
                   Auditor Sign In
                 </Link>
               </li>
+              <li>
+                <a
+                  href="https://careproof-audit-consolee.ai.studio/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#0F6B6E] transition-colors"
+                  aria-label="Open live deployment in a new tab"
+                >
+                  Live Deployment
+                </a>
+              </li>
             </ul>
           </div>
 

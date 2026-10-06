@@ -388,6 +388,12 @@ test('21. Public footer renders with version, navigation, and privacy note', () 
   assert(html.includes('v1.4.0'), 'Canonical standard version v1.4.0 must render in footer');
   assert(html.includes('Privacy &amp; Data Boundary'), 'Privacy section must render');
   assert(
+    html.includes('href="https://careproof-audit-consolee.ai.studio/"'),
+    'Footer must include live deployment URL'
+  );
+  assert(html.includes('target="_blank"'), 'Live deployment link must open in a new tab');
+  assert(html.includes('rel="noopener noreferrer"'), 'Live deployment link must include safe rel attributes');
+  assert(
     html.includes('zero real patient names, medical record numbers (MRNs)'),
     'Zero PHI guarantee must render'
   );
